@@ -495,9 +495,14 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
 
     # Display the final white screen with stats
     font = cv.FONT_HERSHEY_SIMPLEX
-    font_scale = 1
-    font_thickness = 2
+    font_scale = max(0.6, min(1.5, width / 800))  # Scale font size relative to screen width
+    font_thickness = int(font_scale * 2)
     text_color = (0, 0, 0)  # Black text
+
+    # Line spacing and margins dynamically adjusted to screen height and width
+    margin_x = int(width * 0.05)  # 5% margin from the left
+    line_spacing = int(height * 0.05)  # 5% of height for line spacing
+    y_offset = int(height * 0.1)  # Start at 10% of screen height
 
     # Prepare local stats to display
     local_stats_text = [
@@ -516,18 +521,15 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
     ]
 
     # Combine and display stats
-    y_offset = 100
-    line_spacing = 50
-
     for text in local_stats_text:
-        cv.putText(white_screen, text, (50, y_offset), font, font_scale, text_color, font_thickness)
+        cv.putText(white_screen, text, (margin_x, y_offset), font, font_scale, text_color, font_thickness)
         y_offset += line_spacing
 
     # Add spacing between local and global stats
     y_offset += line_spacing
 
     for text in global_stats_text:
-        cv.putText(white_screen, text, (50, y_offset), font, font_scale, text_color, font_thickness)
+        cv.putText(white_screen, text, (margin_x, y_offset), font, font_scale, text_color, font_thickness)
         y_offset += line_spacing
 
     # Display the white screen with all stats
@@ -539,14 +541,20 @@ def save_stats(runtime, interaction_time, poses_hit):
     Saves the session stats (runtime, interaction time, poses hit) to a CSV file.
     If the file does not exist, it creates it with a header.
     """
+    # Get the current working directory and set the /Data directory
+    file_dir = os.path.join(os.getcwd(), "Data")
+    
+    # Ensure the directory exists
+    os.makedirs(file_dir, exist_ok=True)
+
     # File path
-    file_name = "stats.csv"
+    file_path = os.path.join(file_dir, "stats.csv")
 
     # Check if file exists
-    file_exists = os.path.isfile(file_name)
+    file_exists = os.path.isfile(file_path)
 
     # Open the file in append mode
-    with open(file_name, mode="a", newline="") as file:
+    with open(file_path, mode="a", newline="") as file:
         writer = csv.writer(file)
 
         # Write the header if the file is new
@@ -560,15 +568,14 @@ def display_accumulated_stats():
     """
     Display global accumulated stats from previous sessions and optionally return them.
     """
-    import csv
-
-    filename = "stats.csv"
+    # Get the current working directory and set the /Data directory
+    file_path = os.path.join(os.getcwd(), "Data", "stats.csv")    
     total_runtime = 0
     total_interaction_time = 0
     total_poses_hit = 0
 
     try:
-        with open(filename, mode='r') as file:
+        with open(file_path, mode='r') as file:
             reader = csv.reader(file)
             for i, row in enumerate(reader):
                 if i == 0: # Skip header
