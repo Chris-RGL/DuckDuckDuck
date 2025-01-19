@@ -32,7 +32,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 
-timer = 30 # Seconds before triggering ending sequence
+timer = 10 # Seconds before triggering ending sequence
 ymca_trigger = False
 # Datasheet of slopes required for a desired pose
 poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
@@ -564,8 +564,43 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
 
     # Display the white screen with all stats
     cv.imshow('Live Feed', white_screen)
-    cv.waitKey(0)  # Wait indefinitely for user input
+    cv.waitKey(10000)  # Pause for 10 seconds
 
+    # Display the final message screen
+    message_screen = np.ones((height, width, 3), dtype=np.uint8) * 255  # White screen
+    message_text = "Thank you for your participation!\nYour movement data will be used to \ntrain the next generation of AI"
+    message_font_scale = max(1.0, min(2.5, width / 600))  # Larger font for message
+    message_thickness = 3
+
+    # Split the message text by lines for central alignment
+    message_lines = message_text.split("\n")
+    line_height = int(height * 0.1)  # Line height based on screen height
+    y_center = height // 2 - len(message_lines) * line_height // 2  # Start at center vertically
+
+    for i, line in enumerate(message_lines):
+        text_size = cv.getTextSize(line, font, message_font_scale, message_thickness)[0]
+        x_center = (width - text_size[0]) // 2  # Center horizontally
+        y_position = y_center + i * line_height
+        cv.putText(message_screen, line, (x_center, y_position), font, message_font_scale, text_color, message_thickness)
+
+    # Display the message screen
+    cv.imshow('Live Feed', message_screen)
+    ccv.waitKey(5000)  # Pause for 5 seconds
+
+    # Fade back to black and restart
+    for i in range(total_frames):
+        alpha = i / total_frames
+        blended_frame = cv.addWeighted(message_screen, 1 - alpha, black_overlay, alpha, 0)
+        cv.imshow('Live Feed', blended_frame)
+        if cv.waitKey(1) & 0xFF == 27:  # Break if ESC is pressed
+            break
+        time.sleep(1 / 30)  # Simulate 30 FPS
+
+    cv.imshow('Live Feed', black_overlay)
+    cv.waitKey(500)  # Pause briefly on black screen
+
+    # Restart the main function
+    main()
 def save_stats(runtime, interaction_time, poses_hit):
     """
     Saves the session stats (runtime, interaction time, poses hit) to a CSV file.
@@ -704,7 +739,7 @@ def main():
     left_EW_min_slope = 0
     left_count_EW = 0
 
-    count_pose = 1
+    count_pose = 0
 
     y_pose_detected = False
     m_pose_detected = False
