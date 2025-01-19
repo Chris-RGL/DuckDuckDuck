@@ -585,7 +585,7 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
 
     # Display the message screen
     cv.imshow('Live Feed', message_screen)
-    ccv.waitKey(5000)  # Pause for 5 seconds
+    cv.waitKey(5000)  # Pause for 5 seconds
 
     # Fade back to black and restart
     for i in range(total_frames):
@@ -740,6 +740,8 @@ def main():
     left_count_EW = 0
 
     count_pose = 0
+    global ymca_trigger
+    ymca_trigger = False
 
     y_pose_detected = False
     m_pose_detected = False
@@ -752,8 +754,6 @@ def main():
             # Start interaction_time tracking if a pose has been hit
             if count_pose == 1:
                 interaction_start_time = time.time()
-
-            global ymca_trigger
 
             if countdown_start_time is None and ymca_trigger:  # Start countdown when YMCA is hit
                 countdown_start_time = time.time()
@@ -770,7 +770,7 @@ def main():
 
             success, image = cap.read()
             if not success:
-                print("Ignoring empty camera frame.")
+                #print("Ignoring empty camera frame.")
                 continue
 
             # Convert the image to RGB before processing.
@@ -789,7 +789,7 @@ def main():
                         # Update the object's position to follow the fingertip
                         index_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
                         grab_object.pos = (int(index_finger_tip.x * image.shape[1]), int(index_finger_tip.y * image.shape[0]))
-                        print("Object grabbed and moved!")
+                        #print("Object grabbed and moved!")
 
 
             # Create a blank white image
