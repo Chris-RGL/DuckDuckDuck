@@ -1,5 +1,5 @@
 ## Social Experiment        
-About me        
+Larry is part of a bigger project that I am attempting to take on. The project is a social experiment to see how people react to being recorded in public when told the recording will be used for something they may or may not agree with. The full project is intended to have a kiosk with Larry that will attract people to interact with the model. After a while, a message of what the data is going to be used for is displayed. The goal of the larger project is to emphasize the importance of ethical data collection as well as understanding that we are being monitored everywhere.  
 
 ## Setting Up        
 <strong><span style="color:red;">Note:</span></strong> <span style="color:red;">Virtual environment setup works only with Python 3.7 to 3.10.</span>     
