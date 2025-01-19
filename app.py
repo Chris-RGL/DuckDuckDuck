@@ -34,7 +34,7 @@ mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 
 timer = 2 # Seconds before triggering ending sequence
-ymca_trigger = False
+ymca_trigger = True
 # Datasheet of slopes required for a desired pose
 poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
 
@@ -461,8 +461,8 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
     # Save the stats to a file
     save_stats(runtime, interaction_time, poses_hit)
 
-    # Display Global statistics
-    display_accumulated_stats()
+    # Fetch global statistics
+    global_stats = display_accumulated_stats(return_stats=True)
 
     height, width, _ = image.shape
     black_overlay = np.zeros((height, width, 3), dtype=np.uint8)  # Black image
@@ -480,11 +480,11 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
             break
         time.sleep(1 / 30)  # Simulate 30 FPS
 
-    # Pause briefly when fully black
+    # Pause briefly on black screen
     cv.imshow('Live Feed', black_overlay)
-    cv.waitKey(500)
+    cv.waitKey(500)  # Display black screen for 1.5 seconds
 
-    # Fade from black to new screen
+    # Fade from black to white screen
     for i in range(total_frames):
         alpha = i / total_frames
         blended_frame = cv.addWeighted(black_overlay, 1 - alpha, white_screen, alpha, 0)
@@ -493,7 +493,44 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
             break
         time.sleep(1 / 30)  # Simulate 30 FPS
 
-    # Display the final new screen
+    # Display the final white screen with stats
+    font = cv.FONT_HERSHEY_SIMPLEX
+    font_scale = 1
+    font_thickness = 2
+    text_color = (0, 0, 0)  # Black text
+
+    # Prepare local stats to display
+    local_stats_text = [
+        "Session Stats:",
+        f"Runtime: {round(runtime, 2)} seconds",
+        f"Interaction Time: {round(interaction_time, 2)} seconds",
+        f"Poses Hit: {poses_hit}",
+    ]
+
+    # Prepare global stats to display
+    global_stats_text = [
+        "Global Stats:",
+        f"Total Runtime: {round(global_stats['total_runtime'], 2)} seconds",
+        f"Total Interaction Time: {round(global_stats['total_interaction_time'], 2)} seconds",
+        f"Total Poses Hit: {global_stats['total_poses_hit']}",
+    ]
+
+    # Combine and display stats
+    y_offset = 100
+    line_spacing = 50
+
+    for text in local_stats_text:
+        cv.putText(white_screen, text, (50, y_offset), font, font_scale, text_color, font_thickness)
+        y_offset += line_spacing
+
+    # Add spacing between local and global stats
+    y_offset += line_spacing
+
+    for text in global_stats_text:
+        cv.putText(white_screen, text, (50, y_offset), font, font_scale, text_color, font_thickness)
+        y_offset += line_spacing
+
+    # Display the white screen with all stats
     cv.imshow('Live Feed', white_screen)
     cv.waitKey(0)  # Wait indefinitely for user input
 
@@ -503,7 +540,7 @@ def save_stats(runtime, interaction_time, poses_hit):
     If the file does not exist, it creates it with a header.
     """
     # File path
-    file_name = "session_stats.csv"
+    file_name = "stats.csv"
 
     # Check if file exists
     file_exists = os.path.isfile(file_name)
@@ -521,36 +558,32 @@ def save_stats(runtime, interaction_time, poses_hit):
 
 def display_accumulated_stats():
     """
-    Reads the session stats from the CSV file and displays accumulated totals and averages.
+    Display global accumulated stats from previous sessions and optionally return them.
     """
-    file_name = "session_stats.csv"
-    if not os.path.isfile(file_name):
-        print("No stats available yet.")
-        return
+    import csv
 
-    # Read the file and calculate stats
+    filename = "stats.csv"
     total_runtime = 0
     total_interaction_time = 0
-    total_poses = 0
-    session_count = 0
+    total_poses_hit = 0
 
-    with open(file_name, mode="r") as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            total_runtime += float(row["Total Runtime (s)"])
-            total_interaction_time += float(row["Interaction Time (s)"])
-            total_poses += int(row["Poses Hit"])
-            session_count += 1
-
-    # Display stats
-    print(f"\n--- Accumulated Stats ---")
-    print(f"Total Sessions: {session_count}")
-    print(f"Total Runtime: {total_runtime:.2f} seconds")
-    print(f"Total Interaction Time: {total_interaction_time:.2f} seconds")
-    print(f"Total Poses Hit: {total_poses}")
-    print(f"Average Runtime: {total_runtime / session_count:.2f} seconds")
-    print(f"Average Interaction Time: {total_interaction_time / session_count:.2f} seconds")
-    print(f"Average Poses Hit: {total_poses / session_count:.2f}")
+    try:
+        with open(filename, mode='r') as file:
+            reader = csv.reader(file)
+            for i, row in enumerate(reader):
+                if i == 0: # Skip header
+                    continue
+                total_runtime += float(row[0])
+                total_interaction_time += float(row[1])
+                total_poses_hit += int(row[2])
+    except FileNotFoundError:
+        print("Stats file not found. Starting fresh.")
+    
+    return {
+            "total_runtime": total_runtime,
+            "total_interaction_time": total_interaction_time,
+            "total_poses_hit": total_poses_hit,
+        }
 
 def initialize_pygame_mixer():
     pygame.mixer.init()
@@ -631,7 +664,7 @@ def main():
     left_EW_min_slope = 0
     left_count_EW = 0
 
-    count_pose = 0
+    count_pose = 1
 
     y_pose_detected = False
     m_pose_detected = False
