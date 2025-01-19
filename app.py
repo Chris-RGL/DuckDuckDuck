@@ -1,4 +1,6 @@
 """
+app.py
+
 An interactive skeleton-tracking script designed for a social experiment.
 
 Sections of this script are adapted from:
