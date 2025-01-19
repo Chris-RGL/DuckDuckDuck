@@ -22,7 +22,6 @@ import numpy as np
 import mediapipe as mp
 import time
 import pandas as pd
-from playsound import playsound
 import pygame
 import csv
 import os
@@ -40,6 +39,19 @@ poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
 
 # Face mask for character model
 character_model = cv.imread('Head.png', cv.IMREAD_UNCHANGED)
+
+
+# Object definition
+class GrabObject:
+    def __init__(self, pos, radius, color=(255, 0, 0)):
+        self.pos = pos
+        self.radius = radius
+        self.color = color
+
+    def draw(self, image):
+        cv.circle(image, self.pos, self.radius, self.color, -1)
+
+
 
 def calc_slope(first_point_position, second_point_position):
     '''
@@ -70,28 +82,26 @@ def calc_slope(first_point_position, second_point_position):
         slope = dy / dx
     return slope
 
-def track_hand_positions(image, results_hands):
-    '''
-    Extracts and returns the positions of wrists from hand landmarks detected in an image.
-
-    This function iterates through detected hand landmarks in an image, specifically extracting the
-    position of the wrist for each detected hand. The positions are normalized in the input data and
-    are scaled according to the dimensions of the input image to convert them to pixel coordinates.
+def track_hand_details(image, results_hands):
+    """
+    Extracts detailed positions of hand landmarks such as fingertips and joints.
 
     Parameters:
-    - image (numpy.ndarray): The image in which hands are detected. Used to scale landmark positions to pixel coordinates.
-    - results_hands (mediapipe.python.solutions.hands.Hands): The results from a MediaPipe Hands model containing detected hand landmarks.
+    - image (numpy.ndarray): The image being processed.
+    - results_hands (mediapipe.python.solutions.hands.Hands): Results from MediaPipe Hands processing.
 
     Returns:
-    list of tuple: A list of tuples, each tuple representing the (x, y) coordinates of a wrist in pixel coordinates.
-    '''
-
-    hand_positions = []
+    dict: A dictionary containing lists of tuples for various hand landmarks.
+    """
+    details = {'index_finger_tip': [], 'thumb_tip': []}
     if results_hands.multi_hand_landmarks:
         for hand_landmarks in results_hands.multi_hand_landmarks:
-            wrist = hand_landmarks.landmark[mp_hands.HandLandmark.WRIST]
-            hand_positions.append((wrist.x * image.shape[1], wrist.y * image.shape[0]))
-    return hand_positions
+            index_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+            thumb_tip = hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP]
+            details['index_finger_tip'].append((index_tip.x * image.shape[1], index_tip.y * image.shape[0]))
+            details['thumb_tip'].append((thumb_tip.x * image.shape[1], thumb_tip.y * image.shape[0]))
+    return details
+
 
 def track_right_shoulder_positions(image, results_pose):
     '''
@@ -268,7 +278,7 @@ def check_hands_above_head(image, results_pose, results_hands):
     bool: True if any hand is detected above the level of the head (nose), otherwise False.
     '''
 
-    hand_positions = track_hand_positions(image, results_hands)
+    hand_positions = track_hand_details(image, results_hands)
     head_position = track_head_position(image, results_pose)
 
     hands_above_head = False
@@ -400,6 +410,35 @@ def YMCA():
     global ymca_trigger
     ymca_trigger = True
     play_sound('Data\YMCA.mp3')
+
+def detect_grabbing_and_interact(hand_landmarks, image_shape, grab_object):
+    """
+    Determines if a grabbing gesture is detected based on hand landmarks.
+
+    Parameters:
+    - hand_landmarks: The landmarks of a single hand detected by MediaPipe.
+    - image_shape: The dimensions of the image being processed.
+
+    Returns:
+    bool: True if a grabbing gesture is detected, False otherwise.
+    """
+    if not hand_landmarks:
+        return False
+
+    if not hand_landmarks:
+        return False
+
+    image_width, image_height = image_shape[1], image_shape[0]
+    index_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+    fingertip_pos = (int(index_finger_tip.x * image_width), int(index_finger_tip.y * image_height))
+
+    # Check if the fingertip is close enough to the object
+    dist = np.linalg.norm(np.array(fingertip_pos) - np.array(grab_object.pos))
+    if dist < grab_object.radius:
+        return True  # This means the object is being grabbed
+    return False
+
+
 
 def pose_check(rse_slope, rew_slope, lse_slope, lew_slope):
     '''
@@ -628,8 +667,11 @@ def main():
     '''
 
     cap = cv.VideoCapture(700)
-    initialize_pygame_mixer()  # Initialize once at the start
     #cap = cv.VideoCapture(0)
+    initialize_pygame_mixer()  # Initialize once at the start
+
+    # Initialize an object
+    grab_object = GrabObject((600, 400), 30, color=(0,255,0))
 
     countdown_triggered = False
     countdown_start_time = None
@@ -675,7 +717,7 @@ def main():
             # Start interaction_time tracking if a pose has been hit
             if count_pose == 1:
                 interaction_start_time = time.time()
-            
+
             global ymca_trigger
 
             if countdown_start_time is None and ymca_trigger:  # Start countdown when YMCA is hit
@@ -705,6 +747,15 @@ def main():
             # Process with Hands model
             results_hands = hands.process(image)
 
+            # Drawing the object and checking for interaction
+            if results_hands.multi_hand_landmarks:
+                for hand_landmarks in results_hands.multi_hand_landmarks:
+                    if detect_grabbing_and_interact(hand_landmarks, image.shape, grab_object):
+                        # Update the object's position to follow the fingertip
+                        index_finger_tip = hand_landmarks.landmark[mp_hands.HandLandmark.INDEX_FINGER_TIP]
+                        grab_object.pos = (int(index_finger_tip.x * image.shape[1]), int(index_finger_tip.y * image.shape[0]))
+                        print("Object grabbed and moved!")
+
 
             # Create a blank white image
             white_image = np.ones_like(image) * 255
@@ -713,6 +764,8 @@ def main():
 
             draw_landmarks_with_labels(white_image, results_pose)
             draw_hand_landmarks_with_labels(white_image, results_hands)
+            # Draw the grabbable object on the screen
+            grab_object.draw(white_image)
 
             if results_pose.pose_landmarks:
                 nose = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE]
