@@ -1,9 +1,10 @@
 """
-Script to set up the virtual environment with dependencies for app.py.
+A script to set up the virtual environment with required dependencies for app.py.
 
 Author: Angel Rivera
 Date: 01/19/2025
 """
+
 import os
 import subprocess
 import sys
