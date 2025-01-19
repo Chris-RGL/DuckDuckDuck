@@ -28,7 +28,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 
-poseData = pd.read_csv('Desired_Poses.csv')
+poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
 
 character_model = cv.imread('Head.png', cv.IMREAD_UNCHANGED)
 
@@ -244,25 +244,26 @@ def main():
     '''
 
 
-    right_SE_prev_slope = 0.9422467101050331
-    right_SE_max_slope = right_SE_prev_slope + .5
-    right_SE_min_slope = right_SE_prev_slope - .5
+    right_SE_prev_slope = 0
+    right_SE_max_slope = 0
+    right_SE_min_slope = 0
     right_count_SE = 0
 
-    right_EW_prev_slope = -0.47764218790827306
-    right_EW_max_slope = right_EW_prev_slope + .5
-    right_EW_min_slope = right_EW_prev_slope - .5
+    right_EW_prev_slope = 0
+    right_EW_max_slope = 0
+    right_EW_min_slope = 0
     right_count_EW = 0
 
-    left_SE_prev_slope = -1.3445725969181155
-    left_SE_max_slope = left_SE_prev_slope + .5
-    left_SE_min_slope = left_SE_prev_slope - .5
+    left_SE_prev_slope = 0
+    left_SE_max_slope = 0
+    left_SE_min_slope = 0
     left_count_SE = 0
 
-    left_EW_prev_slope = 0.49014927334464775
-    left_EW_max_slope = left_EW_prev_slope + .5
-    left_EW_min_slope = left_EW_prev_slope - .5
+    left_EW_prev_slope = 0
+    left_EW_max_slope = 0
+    left_EW_min_slope = 0
     left_count_EW = 0
+
 
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose, \
             mp_hands.Hands(min_detection_confidence=0.7, max_num_hands=2) as hands:
@@ -325,62 +326,59 @@ def main():
 
 
 
-            if right_shoulder_pos and right_elbow_pos and right_elbow_pos and right_wrist_pos:
+            if right_shoulder_pos and right_elbow_pos and right_elbow_pos and right_wrist_pos and \
+                    left_shoulder_pos and left_elbow_pos and left_elbow_pos and left_wrist_pos:
                 right_shoulder_elbow_slope = calc_slope(right_shoulder_pos, right_elbow_pos)
                 right_elbow_wrist_slope = calc_slope(right_elbow_pos, right_wrist_pos)
-                if right_count_SE == 50 and right_count_EW == 50:
-                    print("Right side desired pose hit")
-
-                    #print(f"Debug: Right shoulder pos {right_shoulder_pos}, Right elbow pos {right_elbow_pos}")
-                    #print(f'Right shoulder to elbow slope: {right_shoulder_elbow_slope}')
-                    right_count_SE = 0
-
-                    #print(f"Debug: Right elbow pos {right_elbow_pos}, Right wrist pos {right_wrist_pos}")
-                    #print(f'Right elbow to wrist slope: {right_elbow_wrist_slope}')
-                    right_count_EW = 0
-                else:
-                    if right_SE_max_slope > right_shoulder_elbow_slope > right_SE_min_slope and right_EW_max_slope > right_elbow_wrist_slope > right_EW_min_slope:
-                        right_count_SE += 1
-                        right_count_EW += 1
-                    else:
-                        #right_SE_prev_slope = right_shoulder_elbow_slope
-                        #right_SE_max_slope = right_SE_prev_slope + .5
-                        #right_SE_min_slope = right_SE_prev_slope - .5
-                        right_count_SE = 0
-
-                        #right_EW_prev_slope = right_elbow_wrist_slope
-                        #right_EW_max_slope = right_EW_prev_slope + .5
-                        #right_EW_min_slope = right_EW_prev_slope - .5
-                        right_count_EW = 0
-
-
-            if left_shoulder_pos and left_elbow_pos and left_elbow_pos and left_wrist_pos:
                 left_shoulder_elbow_slope = calc_slope(left_shoulder_pos, left_elbow_pos)
                 left_elbow_wrist_slope = calc_slope(left_elbow_pos, left_wrist_pos)
-                if left_count_SE == 50 and left_count_EW == 50:
+                if right_count_SE == 50 and right_count_EW == 50 and left_count_SE == 50 and left_count_EW == 50:
+                    #print("Right side desired pose hit")
 
-                    print("Left side desired pose hit")
-                    #print(f"Debug: left shoulder pos {left_shoulder_pos}, left elbow pos {left_elbow_pos}")
-                    #print(f'left shoulder to elbow slope: {left_shoulder_elbow_slope}')
+                    print(f"Debug: Right shoulder pos {right_shoulder_pos}, Right elbow pos {right_elbow_pos}")
+                    print(f'Right shoulder to elbow slope: {right_shoulder_elbow_slope}')
+                    right_count_SE = 0
+
+                    print(f"Debug: Right elbow pos {right_elbow_pos}, Right wrist pos {right_wrist_pos}")
+                    print(f'Right elbow to wrist slope: {right_elbow_wrist_slope}')
+                    right_count_EW = 0
+
+                    print(f"Debug: left shoulder pos {left_shoulder_pos}, left elbow pos {left_elbow_pos}")
+                    print(f'left shoulder to elbow slope: {left_shoulder_elbow_slope}')
                     left_count_SE = 0
 
-                    #print(f"Debug: left elbow pos {left_elbow_pos}, left wrist pos {left_wrist_pos}")
-                    #print(f'left elbow to wrist slope: {left_elbow_wrist_slope}')
+                    print(f"Debug: left elbow pos {left_elbow_pos}, left wrist pos {left_wrist_pos}")
+                    print(f'left elbow to wrist slope: {left_elbow_wrist_slope}')
                     left_count_EW = 0
+
                 else:
-                    if left_SE_max_slope > left_shoulder_elbow_slope > left_SE_min_slope and left_EW_max_slope > left_elbow_wrist_slope > left_EW_min_slope:
+                    if right_SE_max_slope > right_shoulder_elbow_slope > right_SE_min_slope and right_EW_max_slope > right_elbow_wrist_slope > right_EW_min_slope and \
+                            left_SE_max_slope > left_shoulder_elbow_slope > left_SE_min_slope and left_EW_max_slope > left_elbow_wrist_slope > left_EW_min_slope:
+                        right_count_SE += 1
+                        right_count_EW += 1
                         left_count_SE += 1
                         left_count_EW += 1
                     else:
-                        #left_SE_prev_slope = left_shoulder_elbow_slope
-                        #left_SE_max_slope = left_SE_prev_slope + .5
-                        #left_SE_min_slope = left_SE_prev_slope - .5
+                        right_SE_prev_slope = right_shoulder_elbow_slope
+                        right_SE_max_slope = right_SE_prev_slope + .5
+                        right_SE_min_slope = right_SE_prev_slope - .5
+                        right_count_SE = 0
+
+                        right_EW_prev_slope = right_elbow_wrist_slope
+                        right_EW_max_slope = right_EW_prev_slope + .5
+                        right_EW_min_slope = right_EW_prev_slope - .5
+                        right_count_EW = 0
+
+                        left_SE_prev_slope = left_shoulder_elbow_slope
+                        left_SE_max_slope = left_SE_prev_slope + .5
+                        left_SE_min_slope = left_SE_prev_slope - .5
                         left_count_SE = 0
 
-                        #left_EW_prev_slope = left_elbow_wrist_slope
-                        #left_EW_max_slope = left_EW_prev_slope + .5
-                        #left_EW_min_slope = left_EW_prev_slope - .5
+                        left_EW_prev_slope = left_elbow_wrist_slope
+                        left_EW_max_slope = left_EW_prev_slope + .5
+                        left_EW_min_slope = left_EW_prev_slope - .5
                         left_count_EW = 0
+
 
 
 
