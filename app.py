@@ -1,6 +1,19 @@
-# Code adapted from:
-# MediaPipe Pose Documentation: https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md
-# Hand Gesture Recognition: https://github.com/kinivi/hand-gesture-recognition-mediapipe
+"""
+An interactive skeleton-tracking script designed for a social experiment.
+
+Sections of this script are adapted from:
+1. [MediaPipe Pose Documentation](https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md)
+2. [Hand Gesture Recognition with MediaPipe](https://github.com/kinivi/hand-gesture-recognition-mediapipe)
+
+Refer to the README for detailed attribution and license information.
+
+Authors: 
+Christopher Gallinger-Long
+Angel Rivera
+Levi Salgado
+
+Date: 01/19/2025
+"""
 
 import cv2 as cv
 import numpy as np
