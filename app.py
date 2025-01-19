@@ -1,3 +1,7 @@
+# Code adapted from:
+# MediaPipe Pose Documentation: https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md
+# Hand Gesture Recognition: https://github.com/kinivi/hand-gesture-recognition-mediapipe
+
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
