@@ -33,8 +33,8 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 
-timer = 2 # Seconds before triggering ending sequence
-ymca_trigger = True
+timer = 30 # Seconds before triggering ending sequence
+ymca_trigger = False
 # Datasheet of slopes required for a desired pose
 poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
 
@@ -483,15 +483,6 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
     # Pause briefly on black screen
     cv.imshow('Live Feed', black_overlay)
     cv.waitKey(500)  # Display black screen for 1.5 seconds
-
-    # Fade from black to white screen
-    for i in range(total_frames):
-        alpha = i / total_frames
-        blended_frame = cv.addWeighted(black_overlay, 1 - alpha, white_screen, alpha, 0)
-        cv.imshow('Live Feed', blended_frame)
-        if cv.waitKey(1) & 0xFF == 27:  # Break if ESC is pressed
-            break
-        time.sleep(1 / 30)  # Simulate 30 FPS
 
     # Display the final white screen with stats
     font = cv.FONT_HERSHEY_SIMPLEX
