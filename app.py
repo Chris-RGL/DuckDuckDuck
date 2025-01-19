@@ -9,14 +9,13 @@ Sections of this script are adapted from:
 
 Refer to the README for detailed attribution and license information.
 
-Authors: 
+Authors:
 Christopher Gallinger-Long
 Angel Rivera
 Levi Salgado
 
 Date: 01/19/2025
 """
-
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
@@ -99,26 +98,6 @@ def track_head_position(image, results_pose):
         head_position = (nose.x * image.shape[1], nose.y * image.shape[0])
     return head_position
 
-def draw_info_text(image, brect, handedness, hand_sign_text,
-                   finger_gesture_text):
-    cv.rectangle(image, (brect[0], brect[1]), (brect[2], brect[1] - 22),
-                 (0, 0, 0), -1)
-
-    info_text = handedness.classification[0].label[0: ]
-    if hand_sign_text != "":
-        info_text = info_text + ':' + hand_sign_text
-    cv.putText(image, info_text, (brect[0] + 5, brect[1] - 4),
-               cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1, cv.LINE_AA)
-
-    if finger_gesture_text != "":
-        cv.putText(image, "Finger Gesture:" + finger_gesture_text, (10, 60),
-                   cv.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 0), 4, cv.LINE_AA)
-        cv.putText(image, "Finger Gesture:" + finger_gesture_text, (10, 60),
-                   cv.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2,
-                   cv.LINE_AA)
-
-    return image
-
 def check_hands_above_head(image, results_pose, results_hands):
     hand_positions = track_hand_positions(image, results_hands)
     head_position = track_head_position(image, results_pose)
@@ -200,9 +179,31 @@ def draw_hand_landmarks_with_labels(image, results):
 
 def main():
     cap = cv.VideoCapture(0)
+
+    right_SE_prev_slope = 0.9422467101050331
+    right_SE_max_slope = right_SE_prev_slope + .5
+    right_SE_min_slope = right_SE_prev_slope - .5
+    right_count_SE = 0
+
+    right_EW_prev_slope = -0.47764218790827306
+    right_EW_max_slope = right_EW_prev_slope + .5
+    right_EW_min_slope = right_EW_prev_slope - .5
+    right_count_EW = 0
+
+    left_SE_prev_slope = -1.3445725969181155
+    left_SE_max_slope = left_SE_prev_slope + .5
+    left_SE_min_slope = left_SE_prev_slope - .5
+    left_count_SE = 0
+
+    left_EW_prev_slope = 0.49014927334464775
+    left_EW_max_slope = left_EW_prev_slope + .5
+    left_EW_min_slope = left_EW_prev_slope - .5
+    left_count_EW = 0
+
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose, \
             mp_hands.Hands(min_detection_confidence=0.7, max_num_hands=2) as hands:
         while cap.isOpened():
+
             success, image = cap.read()
             if not success:
                 print("Ignoring empty camera frame.")
@@ -216,21 +217,7 @@ def main():
             results_pose = pose.process(image)
             # Process with Hands model
             results_hands = hands.process(image)
-            '''
-            #demotration of how coords work
-            hand_positions = track_hand_positions(image, results_hands)
-            for hand_position in hand_positions:
-                print(hand_position)
-            '''
 
-
-            # Print coordinates of pose landmarks.
-            #if results_pose.pose_landmarks:
-                #print_landmark_coordinates(results_pose, image.shape, type="pose")
-
-            # Print coordinates of hand landmarks.
-            #if results_hands.multi_hand_landmarks:
-                #print_landmark_coordinates(results_hands, image.shape, type="hands")
 
             # Create a blank white image
             white_image = np.ones_like(image) * 255
@@ -262,54 +249,81 @@ def main():
             cv.imshow('MediaPipe Pose with Head Model', cv.flip(white_image, 1))
             if cv.waitKey(5) & 0xFF == 27:
                 break
-            '''
-            # Draw the pose and hand annotations on the image.
-            #image.flags.writeable = True
-            #image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
-
-            # Assume we want to overlay the image at the nose landmark (index 0 for example)
-            if results_pose.pose_landmarks:
-                nose_landmark = results_pose.pose_landmarks.landmark[0]
-                nose_x, nose_y = int(nose_landmark.x * image.shape[1]), int(nose_landmark.y * image.shape[0])
-                # Calculate position for overlay (this might need adjustment)
-                overlay_pos = (nose_x - character_model.shape[1] // 2, nose_y - character_model.shape[0] // 2)
-                overlay_image_alpha(white_image, character_model, overlay_pos, character_model[:, :, 3] / 255.0)
 
 
-            # Flip the image horizontally for a selfie-view display.
-            cv.imshow('MediaPipe Pose and Hands', cv.flip(image, 1))
-            if cv.waitKey(5) & 0xFF == 27:
-                break
-            
-
-            # Flip the image horizontally for a selfie-view display.
-            cv.imshow('MediaPipe Pose and Hands', cv.flip(white_image, 1))
-            if cv.waitKey(5) & 0xFF == 27:
-                break
-            
-            # Check if hands are above head
-            hands_above_head = check_hands_above_head(image, results_pose, results_hands)
-
-            # Draw info text based on whether hands are above the head
-            if hands_above_head:
-                hand_status = "Hands Above Head"
-            else:
-                hand_status = "Hands Below Head"
-
-            # Display the result on the image
-            #print('hand status: ' + hand_status)
-            '''
             right_shoulder_pos = track_right_shoulder_positions(image, results_pose)
             right_elbow_pos = track_right_elbow_positions(image, results_pose)
+            right_wrist_pos = track_right_wrist_positions(image, results_pose)
             left_shoulder_pos = track_left_shoulder_positions(image, results_pose)
             left_elbow_pos = track_left_elbow_positions(image, results_pose)
+            left_wrist_pos = track_left_wrist_positions(image, results_pose)
             head_pos = track_head_position(image, results_pose)
 
 
-            if right_shoulder_pos and right_elbow_pos:
-                print(f"Debug: Right shoulder pos {right_shoulder_pos}, Right elbow pos {right_elbow_pos}")
+
+            if right_shoulder_pos and right_elbow_pos and right_elbow_pos and right_wrist_pos:
                 right_shoulder_elbow_slope = calc_slope(right_shoulder_pos, right_elbow_pos)
-                print(f'Right shoulder to elbow slope: {right_shoulder_elbow_slope}')
+                right_elbow_wrist_slope = calc_slope(right_elbow_pos, right_wrist_pos)
+                if right_count_SE == 50 and right_count_EW == 50:
+                    print("Right side desired pose hit")
+
+                    #print(f"Debug: Right shoulder pos {right_shoulder_pos}, Right elbow pos {right_elbow_pos}")
+                    #print(f'Right shoulder to elbow slope: {right_shoulder_elbow_slope}')
+                    right_count_SE = 0
+
+                    #print(f"Debug: Right elbow pos {right_elbow_pos}, Right wrist pos {right_wrist_pos}")
+                    #print(f'Right elbow to wrist slope: {right_elbow_wrist_slope}')
+                    right_count_EW = 0
+                else:
+                    if right_SE_max_slope > right_shoulder_elbow_slope > right_SE_min_slope and right_EW_max_slope > right_elbow_wrist_slope > right_EW_min_slope:
+                        right_count_SE += 1
+                        right_count_EW += 1
+                    else:
+                        #right_SE_prev_slope = right_shoulder_elbow_slope
+                        #right_SE_max_slope = right_SE_prev_slope + .5
+                        #right_SE_min_slope = right_SE_prev_slope - .5
+                        right_count_SE = 0
+
+                        #right_EW_prev_slope = right_elbow_wrist_slope
+                        #right_EW_max_slope = right_EW_prev_slope + .5
+                        #right_EW_min_slope = right_EW_prev_slope - .5
+                        right_count_EW = 0
+
+
+            if left_shoulder_pos and left_elbow_pos and left_elbow_pos and left_wrist_pos:
+                left_shoulder_elbow_slope = calc_slope(left_shoulder_pos, left_elbow_pos)
+                left_elbow_wrist_slope = calc_slope(left_elbow_pos, left_wrist_pos)
+                if left_count_SE == 50 and left_count_EW == 50:
+
+                    print("Left side desired pose hit")
+                    #print(f"Debug: left shoulder pos {left_shoulder_pos}, left elbow pos {left_elbow_pos}")
+                    #print(f'left shoulder to elbow slope: {left_shoulder_elbow_slope}')
+                    left_count_SE = 0
+
+                    #print(f"Debug: left elbow pos {left_elbow_pos}, left wrist pos {left_wrist_pos}")
+                    #print(f'left elbow to wrist slope: {left_elbow_wrist_slope}')
+                    left_count_EW = 0
+                else:
+                    if left_SE_max_slope > left_shoulder_elbow_slope > left_SE_min_slope and left_EW_max_slope > left_elbow_wrist_slope > left_EW_min_slope:
+                        left_count_SE += 1
+                        left_count_EW += 1
+                    else:
+                        #left_SE_prev_slope = left_shoulder_elbow_slope
+                        #left_SE_max_slope = left_SE_prev_slope + .5
+                        #left_SE_min_slope = left_SE_prev_slope - .5
+                        left_count_SE = 0
+
+                        #left_EW_prev_slope = left_elbow_wrist_slope
+                        #left_EW_max_slope = left_EW_prev_slope + .5
+                        #left_EW_min_slope = left_EW_prev_slope - .5
+                        left_count_EW = 0
+
+
+
+    cap.release()
+    cv.destroyAllWindows()
+
+    '''         
             else:
                 print("Right shoulder or elbow position data is incomplete.")
 
@@ -319,9 +333,60 @@ def main():
                 print(f'Left shoulder to elbow slope: {left_shoulder_elbow_slope}')
             else:
                 print("Left shoulder or elbow position data is incomplete.")
+            '''
+    '''
+    # Draw the pose and hand annotations on the image.
+    #image.flags.writeable = True
+    #image = cv.cvtColor(image, cv.COLOR_RGB2BGR)
 
-    cap.release()
-    cv.destroyAllWindows()
+    # Assume we want to overlay the image at the nose landmark (index 0 for example)
+    if results_pose.pose_landmarks:
+        nose_landmark = results_pose.pose_landmarks.landmark[0]
+        nose_x, nose_y = int(nose_landmark.x * image.shape[1]), int(nose_landmark.y * image.shape[0])
+        # Calculate position for overlay (this might need adjustment)
+        overlay_pos = (nose_x - character_model.shape[1] // 2, nose_y - character_model.shape[0] // 2)
+        overlay_image_alpha(white_image, character_model, overlay_pos, character_model[:, :, 3] / 255.0)
+
+
+    # Flip the image horizontally for a selfie-view display.
+    cv.imshow('MediaPipe Pose and Hands', cv.flip(image, 1))
+    if cv.waitKey(5) & 0xFF == 27:
+        break
+    
+
+    # Flip the image horizontally for a selfie-view display.
+    cv.imshow('MediaPipe Pose and Hands', cv.flip(white_image, 1))
+    if cv.waitKey(5) & 0xFF == 27:
+        break
+    
+    # Check if hands are above head
+    hands_above_head = check_hands_above_head(image, results_pose, results_hands)
+
+    # Draw info text based on whether hands are above the head
+    if hands_above_head:
+        hand_status = "Hands Above Head"
+    else:
+        hand_status = "Hands Below Head"
+
+    # Display the result on the image
+    #print('hand status: ' + hand_status)
+    
+    # Print coordinates of pose landmarks.
+            #if results_pose.pose_landmarks:
+                #print_landmark_coordinates(results_pose, image.shape, type="pose")
+
+            # Print coordinates of hand landmarks.
+            #if results_hands.multi_hand_landmarks:
+                #print_landmark_coordinates(results_hands, image.shape, type="hands")
+                
+                
+    '''
+    '''
+            #demotration of how coords work
+            hand_positions = track_hand_positions(image, results_hands)
+            for hand_position in hand_positions:
+                print(hand_position)
+    '''
 
 if __name__ == '__main__':
     main()
