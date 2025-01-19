@@ -25,7 +25,6 @@ import pandas as pd
 from playsound import playsound
 import pygame
 
-
 # Set up media pipeline
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -33,14 +32,12 @@ mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 
 timer = 60 # Seconds before triggering ending sequence
-
+ymca_trigger = False
 # Datasheet of slopes required for a desired pose
 poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
 
 # Face mask for character model
 character_model = cv.imread('Head.png', cv.IMREAD_UNCHANGED)
-
-
 
 def calc_slope(first_point_position, second_point_position):
     # Adding a small epsilon value to prevent division by zero
@@ -192,6 +189,7 @@ def draw_hand_landmarks_with_labels(image, results):
                     cv.putText(image, f"{idx+1}", (landmark_px[0] + 5, landmark_px[1] + 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
             '''
 def YMCA():
+    ymca_trigger = True
     play_sound('Data\YMCA.mp3')
 
 def pose_check(rse_slope, rew_slope, lse_slope, lew_slope):
@@ -218,7 +216,7 @@ def pose_check(rse_slope, rew_slope, lse_slope, lew_slope):
         return pd.Series()  # Return an empty series if no match is found
 
 
-def ending_sequence(image):
+def ending_sequence(image, runtime, interaction_time, poses_hit):
     """
     Implements the ending sequence by fading the current frame to
     black using the existing OpenCV window, then displays stats and
@@ -269,8 +267,11 @@ def play_sound(file_path):
 def main():
     cap = cv.VideoCapture(700)
     #cap = cv.VideoCapture(0)
+
     countdown_triggered = False
     countdown_start_time = None
+    interaction_start_time = None
+    program_start_time = time.time() # Track total runtime
 
     # Create a named window that can be resized
     cv.namedWindow('Live Feed', cv.WINDOW_NORMAL)
@@ -308,12 +309,22 @@ def main():
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose, \
             mp_hands.Hands(min_detection_confidence=0.7, max_num_hands=2) as hands:
         while cap.isOpened():
+            # Start interaction_time tracking if a pose has been hit
+            if count_pose == 1:
+                interaction_start_time = time.time()
+
+            if countdown_start_time is None & ymca_trigger == True:  # Start countdown when YMCA is hit
+                countdown_start_time = time.time()
+
             # Check if 60 seconds have elapsed since the countdown started
             if countdown_start_time:
                 elapsed_time = time.time() - countdown_start_time
-                if elapsed_time >= timer and not countdown_triggered: # FIX AFTER TESTING
+                if elapsed_time >= timer and not countdown_triggered:
+                    interaction_time = time.time() - interaction_start_time
+                    total_elapsed_time = time.time() - program_start_time # Calculate elapsed time since the program started
                     flipped_white_image = cv.flip(white_image, 1)  # Apply the same flip
-                    ending_sequence(flipped_white_image)          # Pass the flipped image                    countdown_triggered = True
+                    ending_sequence(flipped_white_image, total_elapsed_time, interaction_time, count_pose)              
+                    countdown_triggered = True
 
             success, image = cap.read()
             if not success:
@@ -356,9 +367,6 @@ def main():
                 overlay_pos = (nose_pos[0] - scaled_head.shape[1] // 2, nose_pos[1] - scaled_head.shape[0] // 2)
 
                 overlay_image_alpha(white_image, scaled_head[:, :, :3], overlay_pos, alpha_mask)
-
-                if countdown_start_time is None:  # Start countdown when the skeleton is first displayed
-                    countdown_start_time = time.time()
 
             cv.imshow('Live Feed', cv.flip(white_image, 1))
             if cv.waitKey(5) & 0xFF == 27:

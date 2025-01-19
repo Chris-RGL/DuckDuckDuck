@@ -29,7 +29,7 @@ def setup():
     try:
         subprocess.check_call([python_executable, "-m", "pip", "install", "--upgrade", "pip"])
         subprocess.check_call([python_executable, "-m", "pip", "install", 
-            "tensorflow", "opencv-python", "mediapipe", "scikit-learn", "matplotlib", "pandas"])
+            "tensorflow", "opencv-python", "mediapipe", "scikit-learn", "matplotlib", "pandas", "playsound", "pygame"])
         print("Dependencies installed successfully!")
     except Exception as e:
         print(f"Error installing dependencies: {e}")
