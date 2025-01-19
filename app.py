@@ -31,7 +31,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 
-timer = 60 # Seconds before triggering ending sequence
+timer = 2 # Seconds before triggering ending sequence
 ymca_trigger = False
 # Datasheet of slopes required for a desired pose
 poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
@@ -395,6 +395,7 @@ def draw_hand_landmarks_with_labels(image, results):
 
 # Simple functiion to play YMCA song upone desired pose completion
 def YMCA():
+    global ymca_trigger
     ymca_trigger = True
     play_sound('Data\YMCA.mp3')
 
@@ -451,7 +452,9 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
     final screen.
     """
     print("Countdown finished! Commencing ending sequence.")
-
+    print("\nTotal runtime:", round(runtime, 2), "seconds")
+    print("Interaction time:", round(interaction_time, 2), "seconds")
+    print("Poses hit:", poses_hit)
     height, width, _ = image.shape
     black_overlay = np.zeros((height, width, 3), dtype=np.uint8)  # Black image
     white_screen = np.ones((height, width, 3), dtype=np.uint8) * 255  # White image
@@ -577,8 +580,10 @@ def main():
             # Start interaction_time tracking if a pose has been hit
             if count_pose == 1:
                 interaction_start_time = time.time()
+            
+            global ymca_trigger
 
-            if countdown_start_time is None & ymca_trigger == True:  # Start countdown when YMCA is hit
+            if countdown_start_time is None and ymca_trigger:  # Start countdown when YMCA is hit
                 countdown_start_time = time.time()
 
             # Check if 60 seconds have elapsed since the countdown started
