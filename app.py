@@ -22,17 +22,25 @@ import numpy as np
 import mediapipe as mp
 import time
 import pandas as pd
+from playsound import playsound
+import pygame
 
+
+# Set up media pipeline
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 
-timer = 30 # Seconds before triggering ending sequence
+timer = 60 # Seconds before triggering ending sequence
 
+# Datasheet of slopes required for a desired pose
 poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
 
+# Face mask for character model
 character_model = cv.imread('Head.png', cv.IMREAD_UNCHANGED)
+
+
 
 def calc_slope(first_point_position, second_point_position):
     # Adding a small epsilon value to prevent division by zero
@@ -183,15 +191,41 @@ def draw_hand_landmarks_with_labels(image, results):
                     cv.circle(image, landmark_px, 5, (0, 255, 0), -1)
                     cv.putText(image, f"{idx+1}", (landmark_px[0] + 5, landmark_px[1] + 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
             '''
+def YMCA():
+    play_sound('Data\YMCA.mp3')
+
+def pose_check(rse_slope, rew_slope, lse_slope, lew_slope):
+    #angle parameters
+    rse_max = rse_slope + 1.5
+    rse_min = rse_slope - 1.5
+    rew_max = rew_slope + 1.5
+    rew_min = rew_slope - 1.5
+    lse_max = lse_slope + 1.5
+    lse_min = lse_slope - 1.5
+    lew_max = lew_slope + 1.5
+    lew_min = lew_slope - 1.5
+
+    filtered_data = poseData[(poseData['RSE'] < rse_max) & (poseData['RSE'] > rse_min)]
+    if len(filtered_data) > 0:
+        filtered_data = filtered_data[(filtered_data['REW'] < rew_max) & (filtered_data['REW'] > rew_min)]
+        if len(filtered_data) > 0:
+            filtered_data = filtered_data[(filtered_data['LSE'] < lse_max) & (filtered_data['LSE'] > lse_min)]
+            if len(filtered_data) > 0:
+                filtered_data = filtered_data[(filtered_data['LEW'] < lew_max) & (filtered_data['LEW'] > lew_min)]
+    if not filtered_data.empty:
+        return filtered_data['Pose']
+    else:
+        return pd.Series()  # Return an empty series if no match is found
+
 
 def ending_sequence(image):
     """
-    Implements the ending sequence by fading the current frame to 
+    Implements the ending sequence by fading the current frame to
     black using the existing OpenCV window, then displays stats and
     final screen.
     """
     print("Countdown finished! Commencing ending sequence.")
-    
+
     height, width, _ = image.shape
     black_overlay = np.zeros((height, width, 3), dtype=np.uint8)  # Black image
     white_screen = np.ones((height, width, 3), dtype=np.uint8) * 255  # White image
@@ -225,6 +259,13 @@ def ending_sequence(image):
     cv.imshow('Live Feed', white_screen)
     cv.waitKey(0)  # Wait indefinitely for user input
 
+def play_sound(file_path):
+    pygame.mixer.init()
+    pygame.mixer.music.load(file_path)
+    pygame.mixer.music.play()
+    while pygame.mixer.music.get_busy():  # Check if the audio is still playing
+        pygame.time.Clock().tick(10)  # Wait a little for the audio to finish
+
 def main():
     cap = cv.VideoCapture(700)
     #cap = cv.VideoCapture(0)
@@ -235,6 +276,7 @@ def main():
     cv.namedWindow('Live Feed', cv.WINDOW_NORMAL)
     # Set the window to full screen
     cv.setWindowProperty('Live Feed', cv.WND_PROP_FULLSCREEN, cv.WINDOW_FULLSCREEN)
+
 
     right_SE_prev_slope = 0
     right_SE_max_slope = 0
@@ -255,6 +297,13 @@ def main():
     left_EW_max_slope = 0
     left_EW_min_slope = 0
     left_count_EW = 0
+
+    count_pose = 0
+
+    y_pose_detected = False
+    m_pose_detected = False
+    c_pose_detected = False
+    a_pose_detected = False
 
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose, \
             mp_hands.Hands(min_detection_confidence=0.7, max_num_hands=2) as hands:
@@ -332,24 +381,43 @@ def main():
                 right_elbow_wrist_slope = calc_slope(right_elbow_pos, right_wrist_pos)
                 left_shoulder_elbow_slope = calc_slope(left_shoulder_pos, left_elbow_pos)
                 left_elbow_wrist_slope = calc_slope(left_elbow_pos, left_wrist_pos)
-                if right_count_SE == 50 and right_count_EW == 50 and left_count_SE == 50 and left_count_EW == 50:
-                    #print("Right side desired pose hit")
-
-                    print(f"Debug: Right shoulder pos {right_shoulder_pos}, Right elbow pos {right_elbow_pos}")
-                    print(f'Right shoulder to elbow slope: {right_shoulder_elbow_slope}')
-                    right_count_SE = 0
-
-                    print(f"Debug: Right elbow pos {right_elbow_pos}, Right wrist pos {right_wrist_pos}")
-                    print(f'Right elbow to wrist slope: {right_elbow_wrist_slope}')
-                    right_count_EW = 0
-
-                    print(f"Debug: left shoulder pos {left_shoulder_pos}, left elbow pos {left_elbow_pos}")
-                    print(f'left shoulder to elbow slope: {left_shoulder_elbow_slope}')
-                    left_count_SE = 0
-
-                    print(f"Debug: left elbow pos {left_elbow_pos}, left wrist pos {left_wrist_pos}")
-                    print(f'left elbow to wrist slope: {left_elbow_wrist_slope}')
-                    left_count_EW = 0
+                if right_count_SE == 30 and right_count_EW == 30 and left_count_SE == 30 and left_count_EW == 30:
+                    if y_pose_detected == True and m_pose_detected == True and c_pose_detected == True and a_pose_detected == True:
+                        YMCA()
+                        y_pose_detected = False
+                        m_pose_detected = False
+                        c_pose_detected = False
+                        a_pose_detected = False
+                    struck_pose = pose_check(right_shoulder_elbow_slope, right_elbow_wrist_slope, left_shoulder_elbow_slope, left_elbow_wrist_slope)
+                    if len(struck_pose) > 1:
+                        print('Too many pose matches')
+                    else:
+                        if not struck_pose.empty:
+                            match struck_pose.iloc[0]:  # Use iloc to safely access the first element
+                                case 'Y':
+                                    if not y_pose_detected:
+                                        print('Y!')
+                                        play_sound('Data\\blip.mp3')
+                                        count_pose += 1
+                                    y_pose_detected = True
+                                case 'M':
+                                    if not m_pose_detected:
+                                        print('M!')
+                                        play_sound('Data\\blip.mp3')
+                                        count_pose += 1
+                                    m_pose_detected = True
+                                case 'C':
+                                    if not c_pose_detected:
+                                        print('C!')
+                                        play_sound('Data\\blip.mp3')
+                                        count_pose += 1
+                                    c_pose_detected = True
+                                case 'A':
+                                    if not a_pose_detected:
+                                        print('A!')
+                                        play_sound('Data\\blip.mp3')
+                                        count_pose += 1
+                                    a_pose_detected = True
 
                 else:
                     if right_SE_max_slope > right_shoulder_elbow_slope > right_SE_min_slope and right_EW_max_slope > right_elbow_wrist_slope > right_EW_min_slope and \
