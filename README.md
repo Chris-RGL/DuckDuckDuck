@@ -2,7 +2,7 @@
 About me        
 
 ## Setting Up        
-<strong><span style="color:red;">Note:</span></strong> <span style="color:red;">Virtual environment setup works only with Python 3.7 to 3.10</span>
+<strong><span style="color:red;">Note:</span></strong> <span style="color:red;">Virtual environment setup works only with Python 3.7 to 3.10</span>     
 Set up virtual environment with:        
 ```
 python3 setup.py     
