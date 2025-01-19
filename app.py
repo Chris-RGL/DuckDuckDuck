@@ -40,6 +40,21 @@ poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
 character_model = cv.imread('Head.png', cv.IMREAD_UNCHANGED)
 
 def calc_slope(first_point_position, second_point_position):
+    '''
+    Calculate the slope between two points in a 2D space.
+
+    This function computes the slope between two specified points. It handles the edge case where the
+    difference in the x-coordinates of the points is zero (vertical line) by returning positive or negative infinity
+    depending on the direction of the line.
+
+    Parameters:
+    - first_point_position (tuple): A tuple (x, y) representing the x and y coordinates of the first point.
+    - second_point_position (tuple): A tuple (x, y) representing the x and y coordinates of the second point.
+
+    Returns:
+    float: The slope of the line connecting the two points. Returns `inf` or `-inf` if the line is vertical.
+    '''
+
     # Adding a small epsilon value to prevent division by zero
     epsilon = 1e-6
     dx = second_point_position[0] - first_point_position[0]
@@ -54,6 +69,21 @@ def calc_slope(first_point_position, second_point_position):
     return slope
 
 def track_hand_positions(image, results_hands):
+    '''
+    Extracts and returns the positions of wrists from hand landmarks detected in an image.
+
+    This function iterates through detected hand landmarks in an image, specifically extracting the
+    position of the wrist for each detected hand. The positions are normalized in the input data and
+    are scaled according to the dimensions of the input image to convert them to pixel coordinates.
+
+    Parameters:
+    - image (numpy.ndarray): The image in which hands are detected. Used to scale landmark positions to pixel coordinates.
+    - results_hands (mediapipe.python.solutions.hands.Hands): The results from a MediaPipe Hands model containing detected hand landmarks.
+
+    Returns:
+    list of tuple: A list of tuples, each tuple representing the (x, y) coordinates of a wrist in pixel coordinates.
+    '''
+
     hand_positions = []
     if results_hands.multi_hand_landmarks:
         for hand_landmarks in results_hands.multi_hand_landmarks:
@@ -62,6 +92,21 @@ def track_hand_positions(image, results_hands):
     return hand_positions
 
 def track_right_shoulder_positions(image, results_pose):
+    '''
+    Extracts and returns the position of the right shoulder from pose landmarks detected in an image.
+
+    This function checks for the presence of pose landmarks in the given results and specifically extracts
+    the position of the right shoulder. The position is normalized in the input data and is scaled according
+    to the dimensions of the input image to convert it to pixel coordinates.
+
+    Parameters:
+    - image (numpy.ndarray): The image in which the pose has been detected. Used to scale landmark positions to pixel coordinates.
+    - results_pose (mediapipe.python.solutions.pose.Pose): The results from a MediaPipe Pose model containing detected pose landmarks.
+
+    Returns:
+    tuple: A tuple representing the (x, y) coordinates of the right shoulder in pixel coordinates, or an empty list if no landmarks are found.
+    '''
+
     shoulder_positions = []
     if results_pose.pose_landmarks:
         shoulder = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_SHOULDER]
@@ -69,6 +114,21 @@ def track_right_shoulder_positions(image, results_pose):
     return shoulder_positions
 
 def track_right_elbow_positions(image, results_pose):
+    '''
+    Extracts and returns the position of the right elbow from pose landmarks detected in an image.
+
+    This function locates the right elbow landmark within the results provided by a MediaPipe Pose model.
+    If the landmark is found, the function scales the normalized position to pixel coordinates based on the
+    dimensions of the provided image. This allows the position to be accurately mapped within the image space.
+
+    Parameters:
+    - image (numpy.ndarray): The image in which the pose has been detected, used to convert normalized coordinates to pixel coordinates.
+    - results_pose (mediapipe.python.solutions.pose.Pose): The results from a MediaPipe Pose model that includes detected pose landmarks.
+
+    Returns:
+    tuple: A tuple representing the (x, y) coordinates of the right elbow in pixel coordinates, or an empty list if no landmark is detected.
+    '''
+
     elbow_positions = []
     if results_pose.pose_landmarks:
         elbow = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_ELBOW]
@@ -76,6 +136,22 @@ def track_right_elbow_positions(image, results_pose):
     return elbow_positions
 
 def track_right_wrist_positions(image, results_pose):
+    '''
+    Extracts and returns the position of the right wrist from pose landmarks detected in an image.
+
+    This function locates the right wrist landmark within the results provided by a MediaPipe Pose model.
+    It calculates the pixel coordinates of this landmark by scaling its normalized position (relative to the image size)
+    according to the dimensions of the input image. This is essential for applications that need to interact with or highlight
+    specific parts of the image based on pose data.
+
+    Parameters:
+    - image (numpy.ndarray): The image where the pose has been detected, used for scaling normalized coordinates to pixel values.
+    - results_pose (mediapipe.python.solutions.pose.Pose): The results from a MediaPipe Pose model containing detected pose landmarks.
+
+    Returns:
+    tuple: A tuple representing the (x, y) coordinates of the right wrist in pixel coordinates, or an empty list if no landmarks are found.
+    '''
+
     wrist_positions = []
     if results_pose.pose_landmarks:
         wrist = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST]
@@ -83,6 +159,22 @@ def track_right_wrist_positions(image, results_pose):
     return wrist_positions
 
 def track_left_shoulder_positions(image, results_pose):
+    '''
+    Extracts and returns the position of the left shoulder from pose landmarks detected in an image.
+
+    This function identifies the left shoulder landmark from the pose landmarks provided by a MediaPipe Pose model.
+    It converts the normalized coordinates of this landmark into pixel coordinates based on the dimensions of the
+    given image. This function is crucial for applications involving pose tracking where the precise location of body
+    parts is required for further processing or visual output.
+
+    Parameters:
+    - image (numpy.ndarray): The image in which the pose has been detected, used to convert normalized coordinates into pixel coordinates.
+    - results_pose (mediapipe.python.solutions.pose.Pose): The results from a MediaPipe Pose model that includes detected pose landmarks.
+
+    Returns:
+    tuple: A tuple representing the (x, y) coordinates of the left shoulder in pixel coordinates, or an empty list if no landmarks are found.
+    '''
+
     shoulder_positions = []
     if results_pose.pose_landmarks:
         shoulder = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER]
@@ -90,6 +182,22 @@ def track_left_shoulder_positions(image, results_pose):
     return shoulder_positions
 
 def track_left_elbow_positions(image, results_pose):
+    '''
+    Extracts and returns the position of the left elbow from pose landmarks detected in an image.
+
+    This function identifies the left elbow landmark within the results provided by a MediaPipe Pose model.
+    It calculates the pixel coordinates of this landmark by scaling its normalized position (relative to the image size)
+    according to the dimensions of the input image. This is useful for applications that require precise interaction
+    with or analysis of specific body parts in the image, such as biomechanical assessments or interactive applications.
+
+    Parameters:
+    - image (numpy.ndarray): The image in which the pose has been detected, used for scaling normalized coordinates to pixel values.
+    - results_pose (mediapipe.python.solutions.pose.Pose): The results from a MediaPipe Pose model containing detected pose landmarks.
+
+    Returns:
+    tuple: A tuple representing the (x, y) coordinates of the left elbow in pixel coordinates, or an empty list if no landmarks are found.
+    '''
+
     elbow_positions = []
     if results_pose.pose_landmarks:
         elbow = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW]
@@ -97,6 +205,22 @@ def track_left_elbow_positions(image, results_pose):
     return elbow_positions
 
 def track_left_wrist_positions(image, results_pose):
+    '''
+    Extracts and returns the position of the left wrist from pose landmarks detected in an image.
+
+    This function identifies the left wrist landmark from the pose landmarks provided by a MediaPipe Pose model.
+    It calculates the pixel coordinates of this landmark by scaling its normalized position (relative to the image size)
+    according to the dimensions of the input image. This functionality is essential for applications that require detailed
+    tracking of body movements or for interactive systems that respond to user gestures.
+
+    Parameters:
+    - image (numpy.ndarray): The image where the pose has been detected, used to convert normalized coordinates to pixel values.
+    - results_pose (mediapipe.python.solutions.pose.Pose): The results from a MediaPipe Pose model that includes detected pose landmarks.
+
+    Returns:
+    tuple: A tuple representing the (x, y) coordinates of the left wrist in pixel coordinates, or an empty list if no landmarks are found.
+    '''
+
     wrist_positions = []
     if results_pose.pose_landmarks:
         wrist = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_WRIST]
@@ -104,6 +228,21 @@ def track_left_wrist_positions(image, results_pose):
     return wrist_positions
 
 def track_head_position(image, results_pose):
+    '''
+    Extracts and returns the position of the head, determined by the nose landmark, from pose landmarks detected in an image.
+
+    This function locates the nose landmark, which is used as a proxy for the head's position, within the results provided by a MediaPipe Pose model.
+    The function scales the normalized coordinates of this landmark to pixel coordinates based on the dimensions of the input image. This is particularly
+    useful for applications that need to track head movements or for interactive systems where head position is a control mechanism.
+
+    Parameters:
+    - image (numpy.ndarray): The image in which the pose has been detected, used for scaling normalized coordinates to pixel values.
+    - results_pose (mediapipe.python.solutions.pose.Pose): The results from a MediaPipe Pose model that includes detected pose landmarks.
+
+    Returns:
+    tuple or None: A tuple representing the (x, y) coordinates of the head (nose) in pixel coordinates, or None if the landmark is not found.
+    '''
+
     head_position = None
     if results_pose.pose_landmarks:
         nose = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.NOSE]
@@ -111,6 +250,22 @@ def track_head_position(image, results_pose):
     return head_position
 
 def check_hands_above_head(image, results_pose, results_hands):
+    '''
+    Determines if any hands are positioned above the head in a given image.
+
+    This function utilizes the results from MediaPipe Pose and Hands models to compare the positions of the hands and the head.
+    It first retrieves the positions of the hands and the position of the head (using the nose as a reference point) from the image.
+    It then checks if the y-coordinate of any hand is less than the y-coordinate of the nose, indicating that the hand is above the head.
+
+    Parameters:
+    - image (numpy.ndarray): The image from which the positions are being determined.
+    - results_pose (mediapipe.python.solutions.pose.Pose): The results of the pose detection, used to find the head's position.
+    - results_hands (mediapipe.python.solutions.hands.Hands): The results of the hand detection, used to find the positions of the hands.
+
+    Returns:
+    bool: True if any hand is detected above the level of the head (nose), otherwise False.
+    '''
+
     hand_positions = track_hand_positions(image, results_hands)
     head_position = track_head_position(image, results_pose)
 
@@ -126,6 +281,25 @@ def check_hands_above_head(image, results_pose, results_hands):
     return hands_above_head
 
 def overlay_image_alpha(img, img_overlay, pos, alpha_mask):
+    '''
+    Overlays an image with transparency onto another image at a specified position.
+
+    This function places an overlay image onto a background image at the given position, blending
+    it according to an alpha mask. The alpha mask dictates the transparency of the overlay, allowing
+    for smooth edges and semi-transparent effects. The function handles boundary conditions to ensure
+    the overlay only affects the visible region of the background image.
+
+    Parameters:
+    - img (numpy.ndarray): The background image onto which the overlay will be placed. Must be in BGR format.
+    - img_overlay (numpy.ndarray): The overlay image that will be placed on the background image. Must be in BGR format.
+    - pos (tuple): A tuple (x, y) representing the top-left corner where the overlay image will be placed.
+    - alpha_mask (numpy.ndarray): A 2D numpy array representing the alpha mask, which controls the transparency of the overlay.
+                                  The values should be in the range [0, 1], where 0 is fully transparent and 1 is fully opaque.
+
+    Returns:
+    None: The function modifies the img array in-place with no return value.
+    '''
+
     x, y = pos
     y1, y2 = max(0, y), min(img.shape[0], y + img_overlay.shape[0])
     x1, x2 = max(0, x), min(img.shape[1], x + img_overlay.shape[1])
@@ -140,6 +314,24 @@ def overlay_image_alpha(img, img_overlay, pos, alpha_mask):
                                 alpha_inv * img[y1:y2, x1:x2, c])
 
 def print_landmark_coordinates(results, image_shape, type="pose"):
+    '''
+    Prints the coordinates of landmarks detected in an image based on the specified type (pose or hands).
+
+    This function processes landmark results from MediaPipe models, converting normalized landmark coordinates
+    into pixel coordinates based on the image dimensions. It supports both pose landmarks (e.g., body joints)
+    and hand landmarks (e.g., finger joints). The coordinates are printed directly to the console.
+
+    Parameters:
+    - results (mediapipe.python.solutions.pose.PoseLandmark or mediapipe.python.solutions.hands.HandLandmark):
+      The results object containing detected landmarks. It should be the output from a MediaPipe model processing step.
+    - image_shape (tuple): A tuple (height, width, channels) representing the dimensions of the image that was processed.
+    - type (str, optional): The type of landmarks to process. Should be either 'pose' for body joints or 'hands' for hand joints.
+      Default is 'pose'.
+
+    Returns:
+    None: This function does not return a value; it prints the landmark coordinates to the console.
+    '''
+
     image_height, image_width, _ = image_shape
     if type == "pose" and results.pose_landmarks:
         for idx, landmark in enumerate(results.pose_landmarks.landmark):
@@ -150,6 +342,22 @@ def print_landmark_coordinates(results, image_shape, type="pose"):
                 print(f'Hand Point {idx+1}: ({landmark.x * image_width}, {landmark.y * image_height})')
 
 def draw_landmarks_with_labels(image, results):
+    '''
+    Draws pose landmarks and their connections on an image with customized visual specifications.
+
+    This function utilizes MediaPipe's drawing utilities to render pose landmarks on an image. It uses
+    a custom drawing specification to make the landmark visualizations more prominent. The function is designed
+    to visually enhance the landmarks and connections, making them easier to identify in the displayed image.
+
+    Parameters:
+    - image (numpy.ndarray): The image on which landmarks will be drawn. The image should be in RGB format.
+    - results (mediapipe.python.solutions.pose.PoseLandmarks): The results object from a MediaPipe Pose model
+      that contains the pose landmarks to be drawn.
+
+    Returns:
+    None: This function modifies the image in-place and does not return any value.
+    '''
+
     if results.pose_landmarks:
         # Define custom drawing specs (thicker lines)
         custom_drawing_spec = mp_drawing.DrawingSpec(thickness=10, color=(0, 0, 0), circle_radius=0)
@@ -159,21 +367,24 @@ def draw_landmarks_with_labels(image, results):
             mp_pose.POSE_CONNECTIONS,
             landmark_drawing_spec=custom_drawing_spec,
             connection_drawing_spec=custom_drawing_spec)
-        '''
-        mp_drawing.draw_landmarks(
-            image,
-            results.pose_landmarks,
-            mp_pose.POSE_CONNECTIONS,
-            landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style())
-        
-        for idx, landmark in enumerate(results.pose_landmarks.landmark):
-            landmark_px = mp_drawing._normalized_to_pixel_coordinates(landmark.x, landmark.y, image.shape[1], image.shape[0])
-            if landmark_px:
-                cv.circle(image, landmark_px, 5, (0, 255, 0), -1)
-                cv.putText(image, str(idx+1), (landmark_px[0] + 5, landmark_px[1] + 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
-        '''
 
 def draw_hand_landmarks_with_labels(image, results):
+    '''
+    Draws hand landmarks and their connections on an image using MediaPipe's default visual specifications.
+
+    This function processes each detected hand within the given results and uses MediaPipe's drawing utilities
+    to render the landmarks and their connections directly onto the provided image. The landmarks are drawn with
+    the default style provided by MediaPipe, which is tailored to enhance visibility and clarity of hand joints and their interconnections.
+
+    Parameters:
+    - image (numpy.ndarray): The image on which hand landmarks will be drawn. This should be an RGB image.
+    - results (mediapipe.python.solutions.hands.Hands): The results object from a MediaPipe Hands model
+      that contains the hand landmarks to be drawn.
+
+    Returns:
+    None: This function modifies the image in-place and does not return any value.
+    '''
+
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             mp_drawing.draw_landmarks(
@@ -181,18 +392,35 @@ def draw_hand_landmarks_with_labels(image, results):
                 hand_landmarks,
                 mp_hands.HAND_CONNECTIONS,
                 landmark_drawing_spec=mp_drawing_styles.get_default_hand_landmarks_style())
-            '''
-            for idx, landmark in enumerate(hand_landmarks.landmark):
-                landmark_px = mp_drawing._normalized_to_pixel_coordinates(landmark.x, landmark.y, image.shape[1], image.shape[0])
-                if landmark_px:
-                    cv.circle(image, landmark_px, 5, (0, 255, 0), -1)
-                    cv.putText(image, f"{idx+1}", (landmark_px[0] + 5, landmark_px[1] + 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
-            '''
+
+# Simple functiion to play YMCA song upone desired pose completion
 def YMCA():
     ymca_trigger = True
     play_sound('Data\YMCA.mp3')
 
 def pose_check(rse_slope, rew_slope, lse_slope, lew_slope):
+    '''
+    Checks for specific poses based on the slope angles of right and left shoulder to elbow and elbow to wrist.
+
+    This function uses predefined slope ranges for each segment (right shoulder to elbow, right elbow to wrist,
+    left shoulder to elbow, left elbow to wrist) to filter a dataset containing potential poses. It returns the
+    pose(s) that match the input slopes within a certain tolerance.
+
+    Parameters:
+    - rse_slope (float): The slope from the right shoulder to the right elbow.
+    - rew_slope (float): The slope from the right elbow to the right wrist.
+    - lse_slope (float): The slope from the left shoulder to the left elbow.
+    - lew_slope (float): The slope from the left elbow to the left wrist.
+
+    Returns:
+    pandas.Series: A series containing the identified pose(s) based on the input slopes. If no poses match, returns an empty series.
+
+    Note:
+    - The function uses a DataFrame named 'poseData' which must be defined globally and contain the columns:
+      'RSE', 'REW', 'LSE', 'LEW', and 'Pose' where each row represents a different pose and its associated slopes.
+    - The tolerance for matching the slopes is set at ±1.5 units.
+    '''
+
     #angle parameters
     rse_max = rse_slope + 1.5
     rse_min = rse_slope - 1.5
@@ -257,15 +485,52 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
     cv.imshow('Live Feed', white_screen)
     cv.waitKey(0)  # Wait indefinitely for user input
 
-def play_sound(file_path):
+def initialize_pygame_mixer():
     pygame.mixer.init()
-    pygame.mixer.music.load(file_path)
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():  # Check if the audio is still playing
-        pygame.time.Clock().tick(10)  # Wait a little for the audio to finish
+    # Optionally set the frequency and size of the mixer
+    pygame.mixer.set_num_channels(10)  # Increase if you need more simultaneous sounds
+
+def play_sound(file_path):
+    '''
+    Plays an audio file using Pygame's mixer module without blocking the main thread.
+
+    Parameters:
+    - file_path (str): The path to the audio file that needs to be played.
+    '''
+    sound = pygame.mixer.Sound(file_path)
+    sound.play()
 
 def main():
+    '''
+    Main function to capture video, detect poses and hands, and recognize specific sequences of poses.
+
+    This function initializes a video capture device, sets up a full-screen window for displaying the video,
+    and uses MediaPipe for real-time pose and hand landmark detection. It checks for specific poses (Y, M, C, A)
+    based on the slopes of body segments and triggers corresponding actions, such as playing sounds. The process
+    continues until the escape key is pressed or no frames are left to process.
+
+    - Initializes video capture on a predefined camera source.
+    - Sets up the application window in full-screen mode for live feed display.
+    - Processes incoming video frames to detect pose and hand landmarks.
+    - Calculates slopes of arm segments to detect specific poses and triggers sounds.
+    - Uses a countdown mechanism to trigger a final sequence after 60 seconds of activity.
+
+    The function handles pose detection, pose sequence recognition, and multimedia feedback based on the detection results.
+
+    Parameters:
+    None
+
+    Returns:
+    None
+
+    Note:
+    - The script is configured to work with camera ID 700; this may need adjustment based on the actual hardware.
+    - It requires prior installation and proper configuration of OpenCV, MediaPipe, NumPy, and Pygame libraries.
+    - Ensure all paths to sound files and other resources are correctly set relative to the script's environment.
+    '''
+
     cap = cv.VideoCapture(700)
+    initialize_pygame_mixer()  # Initialize once at the start
     #cap = cv.VideoCapture(0)
 
     countdown_triggered = False
