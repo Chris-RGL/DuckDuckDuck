@@ -1,4 +1,8 @@
-MAKE SURE TO PUT CREDITS HERE!!     
+## Social Experiment        
+About me        
+
+## Setting Up        
+<strong><span style="color:red;">Note:</span></strong> <span style="color:red;">Virtual environment setup works only with Python 3.7 to 3.10.</span>     
 
 Set up virtual environment with:        
 ```
@@ -8,3 +12,27 @@ Enter the virtual environment before running:
 ```
 .\venv\Scripts\activate            
 ```
+
+## Authors
+
+Christopher Gallinger-Long - https://github.com/Chris-RGL  
+Angel Rivera - https://github.com/Rivera-Angel  
+Levi Salgado - https://github.com/lsalgado7  
+
+## Credits
+
+This project draws inspiration from and incorporates code from the following sources:       
+1. [MediaPipe Pose Documentation](https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md)  
+   - Provided inspiration and technical implementation for the use of MediaPipe Pose solutions.  
+   - Some modifications were made to adapt the code for this project.
+
+2. [Hand Gesture Recognition with MediaPipe](https://github.com/kinivi/hand-gesture-recognition-mediapipe)  
+   - Code and ideas related to hand gesture recognition were adapted and modified for this project.
+
+## License Information
+
+This project incorporates code from these sources under their respective licenses:
+- MediaPipe: [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+- Hand Gesture Recognition with MediaPipe: [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+
+Copies of the licenses are included in this repository.
