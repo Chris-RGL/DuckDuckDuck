@@ -16,6 +16,7 @@ Levi Salgado
 
 Date: 01/19/2025
 """
+
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
