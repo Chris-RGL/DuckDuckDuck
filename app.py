@@ -21,11 +21,14 @@ import cv2 as cv
 import numpy as np
 import mediapipe as mp
 import time
+import pandas as pd
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
+
+poseData = pd.read_csv('Desired_Poses.csv')
 
 character_model = cv.imread('Head.png', cv.IMREAD_UNCHANGED)
 
@@ -181,6 +184,29 @@ def draw_hand_landmarks_with_labels(image, results):
 
 def ending_sequence():
     printf("Countdown finished! Implement the ending sequence here.")
+
+
+def pose_check(rse_angle, rew_angle, lse_angle, lew_angle):
+    #angle parameters
+    rse_max = rse_angle + 0.5
+    rse_min = rse_angle - 0.5
+    rew_max = rew_angle + 0.5
+    rew_min = rew_angle - 0.5
+    lse_max = lse_angle + 0.5
+    lse_min = lse_angle - 0.5
+    lew_max = lew_angle + 0.5
+    lew_min = lew_angle - 0.5
+
+    filtered_data = poseData[(poseData['RSE'] < rse_max) & (poseData['RSE'] > rse_min)]
+    if len(rse_check) > 0:
+        filtered_data = filtered_data[(filtered_data['REW'] < rew_max) & (filtered_data['REW'] > rew_min)]
+        if len(rew_check) > 0:
+            filtered_data = filtered_data[(filtered_data['LSE'] < lse_max) & (filtered_data['LSE'] > lse_min)]
+            if len(filtered_data) > 0:
+                filtered_data = filtered_data[(filtered_data['LEW'] < lew_max) & (filtered_data['LEW'] > lew_min)]
+    return filtered_data['Pose']
+    
+    
     
 def main():
     cap = cv.VideoCapture(0)
