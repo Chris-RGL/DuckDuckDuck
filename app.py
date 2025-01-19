@@ -842,7 +842,7 @@ def main():
                 right_elbow_wrist_slope = calc_slope(right_elbow_pos, right_wrist_pos)
                 left_shoulder_elbow_slope = calc_slope(left_shoulder_pos, left_elbow_pos)
                 left_elbow_wrist_slope = calc_slope(left_elbow_pos, left_wrist_pos)
-                if right_count_SE == 30 and right_count_EW == 30 and left_count_SE == 30 and left_count_EW == 30:
+                if right_count_SE == 20 and right_count_EW == 20 and left_count_SE == 20 and left_count_EW == 20:
                     if y_pose_detected == True and m_pose_detected == True and c_pose_detected == True and a_pose_detected == True:
                         YMCA()
                         y_pose_detected = False
