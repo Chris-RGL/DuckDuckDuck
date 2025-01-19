@@ -15,9 +15,9 @@ Enter the virtual environment before running:
 
 ## Authors
 
-[Christopher Gallinger-Long](https://github.com/Chris-RGL)  
-[Angel Rivera](https://github.com/Rivera-Angel)  
-[Levi Salgado](https://github.com/lsalgado7)  
+Christopher Gallinger-Long - https://github.com/Chris-RGL  
+Angel Rivera - https://github.com/Rivera-Angel  
+Levi Salgado - https://github.com/lsalgado7  
 
 ## Credits
 
