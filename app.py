@@ -24,6 +24,8 @@ import time
 import pandas as pd
 from playsound import playsound
 import pygame
+import csv
+import os
 
 # Set up media pipeline
 mp_drawing = mp.solutions.drawing_utils
@@ -449,12 +451,19 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
     """
     Implements the ending sequence by fading the current frame to
     black using the existing OpenCV window, then displays stats and
-    final screen.
+    final screen. Saves session stats to a CSV file.
     """
     print("Countdown finished! Commencing ending sequence.")
-    print("\nTotal runtime:", round(runtime, 2), "seconds")
-    print("Interaction time:", round(interaction_time, 2), "seconds")
-    print("Poses hit:", poses_hit)
+    print(f"\nTotal runtime: {round(runtime, 2)} seconds")
+    print(f"Interaction time: {round(interaction_time, 2)} seconds")
+    print(f"Poses hit: {poses_hit}")
+
+    # Save the stats to a file
+    save_stats(runtime, interaction_time, poses_hit)
+
+    # Display Global statistics
+    display_accumulated_stats()
+
     height, width, _ = image.shape
     black_overlay = np.zeros((height, width, 3), dtype=np.uint8)  # Black image
     white_screen = np.ones((height, width, 3), dtype=np.uint8) * 255  # White image
@@ -487,6 +496,61 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
     # Display the final new screen
     cv.imshow('Live Feed', white_screen)
     cv.waitKey(0)  # Wait indefinitely for user input
+
+def save_stats(runtime, interaction_time, poses_hit):
+    """
+    Saves the session stats (runtime, interaction time, poses hit) to a CSV file.
+    If the file does not exist, it creates it with a header.
+    """
+    # File path
+    file_name = "session_stats.csv"
+
+    # Check if file exists
+    file_exists = os.path.isfile(file_name)
+
+    # Open the file in append mode
+    with open(file_name, mode="a", newline="") as file:
+        writer = csv.writer(file)
+
+        # Write the header if the file is new
+        if not file_exists:
+            writer.writerow(["Total Runtime (s)", "Interaction Time (s)", "Poses Hit"])
+
+        # Write the current session's data
+        writer.writerow([round(runtime, 2), round(interaction_time, 2), poses_hit])
+
+def display_accumulated_stats():
+    """
+    Reads the session stats from the CSV file and displays accumulated totals and averages.
+    """
+    file_name = "session_stats.csv"
+    if not os.path.isfile(file_name):
+        print("No stats available yet.")
+        return
+
+    # Read the file and calculate stats
+    total_runtime = 0
+    total_interaction_time = 0
+    total_poses = 0
+    session_count = 0
+
+    with open(file_name, mode="r") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            total_runtime += float(row["Total Runtime (s)"])
+            total_interaction_time += float(row["Interaction Time (s)"])
+            total_poses += int(row["Poses Hit"])
+            session_count += 1
+
+    # Display stats
+    print(f"\n--- Accumulated Stats ---")
+    print(f"Total Sessions: {session_count}")
+    print(f"Total Runtime: {total_runtime:.2f} seconds")
+    print(f"Total Interaction Time: {total_interaction_time:.2f} seconds")
+    print(f"Total Poses Hit: {total_poses}")
+    print(f"Average Runtime: {total_runtime / session_count:.2f} seconds")
+    print(f"Average Interaction Time: {total_interaction_time / session_count:.2f} seconds")
+    print(f"Average Poses Hit: {total_poses / session_count:.2f}")
 
 def initialize_pygame_mixer():
     pygame.mixer.init()
