@@ -9,4 +9,4 @@ Enter the virtual environment before running:
 .\venv\Scripts\activate            
 ```
 
-<strong><span style="color:red;">Note:</span></strong> <span style="color:red;">yada yada</span>
+<strong><span style="color:red;">Note:</span></strong> <span style="color:red;">Virtual environment setup works only with Python 3.7 to 3.10</span>
