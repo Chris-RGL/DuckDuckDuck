@@ -198,9 +198,9 @@ def pose_check(rse_angle, rew_angle, lse_angle, lew_angle):
     lew_min = lew_angle - 0.5
 
     filtered_data = poseData[(poseData['RSE'] < rse_max) & (poseData['RSE'] > rse_min)]
-    if len(rse_check) > 0:
+    if len(filtered_data) > 0:
         filtered_data = filtered_data[(filtered_data['REW'] < rew_max) & (filtered_data['REW'] > rew_min)]
-        if len(rew_check) > 0:
+        if len(filtered_data) > 0:
             filtered_data = filtered_data[(filtered_data['LSE'] < lse_max) & (filtered_data['LSE'] > lse_min)]
             if len(filtered_data) > 0:
                 filtered_data = filtered_data[(filtered_data['LEW'] < lew_max) & (filtered_data['LEW'] > lew_min)]
