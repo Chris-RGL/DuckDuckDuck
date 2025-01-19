@@ -28,7 +28,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 
-timer = 30 # Timer before triggering ending sequence
+timer = 30 # Seconds before triggering ending sequence
 
 poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
 
@@ -236,7 +236,6 @@ def main():
     # Set the window to full screen
     cv.setWindowProperty('Live Feed', cv.WND_PROP_FULLSCREEN, cv.WINDOW_FULLSCREEN)
 
-    '''
     right_SE_prev_slope = 0
     right_SE_max_slope = 0
     right_SE_min_slope = 0
@@ -256,8 +255,6 @@ def main():
     left_EW_max_slope = 0
     left_EW_min_slope = 0
     left_count_EW = 0
-    '''
-
 
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose, \
             mp_hands.Hands(min_detection_confidence=0.7, max_num_hands=2) as hands:
