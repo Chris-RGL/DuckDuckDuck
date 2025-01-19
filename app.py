@@ -28,6 +28,8 @@ mp_drawing_styles = mp.solutions.drawing_styles
 mp_pose = mp.solutions.pose
 mp_hands = mp.solutions.hands
 
+timer = 30 # Timer before triggering ending sequence
+
 poseData = pd.read_csv('Data\Desired_Poses - Sheet1.csv')
 
 character_model = cv.imread('Head.png', cv.IMREAD_UNCHANGED)
@@ -182,9 +184,47 @@ def draw_hand_landmarks_with_labels(image, results):
                     cv.putText(image, f"{idx+1}", (landmark_px[0] + 5, landmark_px[1] + 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
             '''
 
-def ending_sequence():
-    printf("Countdown finished! Implement the ending sequence here.")
+def ending_sequence(image):
+    """
+    Implements the ending sequence by fading the current frame to 
+    black using the existing OpenCV window, then displays stats and
+    final screen.
+    """
+    print("Countdown finished! Commencing ending sequence.")
     
+    height, width, _ = image.shape
+    black_overlay = np.zeros((height, width, 3), dtype=np.uint8)  # Black image
+    white_screen = np.ones((height, width, 3), dtype=np.uint8) * 255  # White image
+
+    # Total number of frames for the fade effect (assuming 30 FPS)
+    total_frames = int(3 * 30)
+
+    # Fade to black
+    for i in range(total_frames):
+        alpha = i / total_frames
+        blended_frame = cv.addWeighted(image, 1 - alpha, black_overlay, alpha, 0)
+        cv.imshow('Live Feed', blended_frame)
+        if cv.waitKey(1) & 0xFF == 27:  # Break if ESC is pressed
+            break
+        time.sleep(1 / 30)  # Simulate 30 FPS
+
+    # Pause briefly when fully black
+    cv.imshow('Live Feed', black_overlay)
+    cv.waitKey(500)
+
+    # Fade from black to new screen
+    for i in range(total_frames):
+        alpha = i / total_frames
+        blended_frame = cv.addWeighted(black_overlay, 1 - alpha, white_screen, alpha, 0)
+        cv.imshow('Live Feed', blended_frame)
+        if cv.waitKey(1) & 0xFF == 27:  # Break if ESC is pressed
+            break
+        time.sleep(1 / 30)  # Simulate 30 FPS
+
+    # Display the final new screen
+    cv.imshow('Live Feed', white_screen)
+    cv.waitKey(0)  # Wait indefinitely for user input
+
 def main():
     cap = cv.VideoCapture(700)
     #cap = cv.VideoCapture(0)
@@ -192,9 +232,9 @@ def main():
     countdown_start_time = None
 
     # Create a named window that can be resized
-    cv.namedWindow('MediaPipe Pose with Head Model', cv.WINDOW_NORMAL)
+    cv.namedWindow('Live Feed', cv.WINDOW_NORMAL)
     # Set the window to full screen
-    cv.setWindowProperty('MediaPipe Pose with Head Model', cv.WND_PROP_FULLSCREEN, cv.WINDOW_FULLSCREEN)
+    cv.setWindowProperty('Live Feed', cv.WND_PROP_FULLSCREEN, cv.WINDOW_FULLSCREEN)
 
     '''
     right_SE_prev_slope = 0.9422467101050331
@@ -246,7 +286,7 @@ def main():
             # Check if 60 seconds have elapsed since the countdown started
             if countdown_start_time:
                 elapsed_time = time.time() - countdown_start_time
-                if elapsed_time >= 5 and not countdown_triggered: # FIX AFTER TESTING
+                if elapsed_time >= timer and not countdown_triggered: # FIX AFTER TESTING
                     flipped_white_image = cv.flip(white_image, 1)  # Apply the same flip
                     ending_sequence(flipped_white_image)          # Pass the flipped image                    countdown_triggered = True
 
