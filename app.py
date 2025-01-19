@@ -183,19 +183,19 @@ def draw_hand_landmarks_with_labels(image, results):
             '''
 
 def ending_sequence():
-    printf("Countdown finished! Implement the ending sequence here.")
+    print("Countdown finished! Implement the ending sequence here.")
 
 
-def pose_check(rse_angle, rew_angle, lse_angle, lew_angle):
+def pose_check(rse_slope, rew_slope, lse_slope, lew_slope):
     #angle parameters
-    rse_max = rse_angle + 0.5
-    rse_min = rse_angle - 0.5
-    rew_max = rew_angle + 0.5
-    rew_min = rew_angle - 0.5
-    lse_max = lse_angle + 0.5
-    lse_min = lse_angle - 0.5
-    lew_max = lew_angle + 0.5
-    lew_min = lew_angle - 0.5
+    rse_max = rse_slope + 0.5
+    rse_min = rse_slope - 0.5
+    rew_max = rew_slope + 0.5
+    rew_min = rew_slope - 0.5
+    lse_max = lse_slope + 0.5
+    lse_min = lse_slope - 0.5
+    lew_max = lew_slope + 0.5
+    lew_min = lew_slope - 0.5
 
     filtered_data = poseData[(poseData['RSE'] < rse_max) & (poseData['RSE'] > rse_min)]
     if len(filtered_data) > 0:
@@ -205,11 +205,44 @@ def pose_check(rse_angle, rew_angle, lse_angle, lew_angle):
             if len(filtered_data) > 0:
                 filtered_data = filtered_data[(filtered_data['LEW'] < lew_max) & (filtered_data['LEW'] > lew_min)]
     return filtered_data['Pose']
-    
-    
-    
+
+
+
+    print("Countdown finished! Implement the ending sequence here.")
+
+
+
 def main():
-    cap = cv.VideoCapture(0)
+    cap = cv.VideoCapture(700)
+    #cap = cv.VideoCapture(0)
+
+    # Create a named window that can be resized
+    cv.namedWindow('MediaPipe Pose with Head Model', cv.WINDOW_NORMAL)
+    # Set the window to full screen
+    cv.setWindowProperty('MediaPipe Pose with Head Model', cv.WND_PROP_FULLSCREEN, cv.WINDOW_FULLSCREEN)
+
+    '''
+    right_SE_prev_slope = 0.9422467101050331
+    right_SE_max_slope = right_SE_prev_slope + .5
+    right_SE_min_slope = right_SE_prev_slope - .5
+    right_count_SE = 0
+
+    right_EW_prev_slope = -0.47764218790827306
+    right_EW_max_slope = right_EW_prev_slope + .5
+    right_EW_min_slope = right_EW_prev_slope - .5
+    right_count_EW = 0
+
+    left_SE_prev_slope = -1.3445725969181155
+    left_SE_max_slope = left_SE_prev_slope + .5
+    left_SE_min_slope = left_SE_prev_slope - .5
+    left_count_SE = 0
+
+    left_EW_prev_slope = 0.49014927334464775
+    left_EW_max_slope = left_EW_prev_slope + .5
+    left_EW_min_slope = left_EW_prev_slope - .5
+    left_count_EW = 0
+    '''
+
 
     right_SE_prev_slope = 0.9422467101050331
     right_SE_max_slope = right_SE_prev_slope + .5
