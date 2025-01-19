@@ -13,6 +13,12 @@ Enter the virtual environment before running:
 .\venv\Scripts\activate            
 ```
 
+## Authors
+
+[Christopher Gallinger-Long](https://github.com/Chris-RGL)
+[Angel Rivera](https://github.com/Rivera-Angel)
+[Levi Salgado](https://github.com/lsalgado7)
+
 ## Credits
 
 This project draws inspiration from and incorporates code from the following sources:       
