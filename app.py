@@ -20,6 +20,7 @@ Date: 01/19/2025
 import cv2 as cv
 import numpy as np
 import mediapipe as mp
+import time
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -178,6 +179,9 @@ def draw_hand_landmarks_with_labels(image, results):
                     cv.putText(image, f"{idx+1}", (landmark_px[0] + 5, landmark_px[1] + 5), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
             '''
 
+def ending_sequence():
+    printf("Countdown finished! Implement the ending sequence here.")
+    
 def main():
     cap = cv.VideoCapture(0)
 
