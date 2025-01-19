@@ -462,7 +462,7 @@ def ending_sequence(image, runtime, interaction_time, poses_hit):
     save_stats(runtime, interaction_time, poses_hit)
 
     # Fetch global statistics
-    global_stats = display_accumulated_stats(return_stats=True)
+    global_stats = display_accumulated_stats()
 
     height, width, _ = image.shape
     black_overlay = np.zeros((height, width, 3), dtype=np.uint8)  # Black image
