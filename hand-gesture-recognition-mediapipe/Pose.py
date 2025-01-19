@@ -45,6 +45,34 @@ def track_right_elbow_positions(image, results_pose):
         elbow_positions = (elbow.x * image.shape[1], elbow.y * image.shape[0])
     return elbow_positions
 
+def track_right_wrist_positions(image, results_pose):
+    wrist_positions = []
+    if results_pose.pose_landmarks:
+        wrist = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.RIGHT_WRIST]
+        wrist_positions = (wrist.x * image.shape[1], wrist.y * image.shape[0])
+    return wrist_positions
+
+def track_left_shoulder_positions(image, results_pose):
+    shoulder_positions = []
+    if results_pose.pose_landmarks:
+        shoulder = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_SHOULDER]
+        shoulder_positions = (shoulder.x * image.shape[1], shoulder.y * image.shape[0])
+    return shoulder_positions
+
+def track_left_elbow_positions(image, results_pose):
+    elbow_positions = []
+    if results_pose.pose_landmarks:
+        elbow = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_ELBOW]
+        elbow_positions = (elbow.x * image.shape[1], elbow.y * image.shape[0])
+    return elbow_positions
+
+def track_left_wrist_positions(image, results_pose):
+    wrist_positions = []
+    if results_pose.pose_landmarks:
+        wrist = results_pose.pose_landmarks.landmark[mp_pose.PoseLandmark.LEFT_WRIST]
+        wrist_positions = (wrist.x * image.shape[1], wrist.y * image.shape[0])
+    return wrist_positions
+
 def track_head_position(image, results_pose):
     head_position = None
     if results_pose.pose_landmarks:
@@ -252,27 +280,27 @@ def main():
             # Display the result on the image
             #print('hand status: ' + hand_status)
             '''
-            shoulder_pos = track_right_shoulder_positions(image, results_pose)
-            elbow_pos = track_right_elbow_positions(image, results_pose)
-            hand_pos = track_hand_positions(image, results_hands)
+            right_shoulder_pos = track_right_shoulder_positions(image, results_pose)
+            right_elbow_pos = track_right_elbow_positions(image, results_pose)
+            left_shoulder_pos = track_left_shoulder_positions(image, results_pose)
+            left_elbow_pos = track_left_elbow_positions(image, results_pose)
             head_pos = track_head_position(image, results_pose)
 
 
-            if shoulder_pos and elbow_pos:
-                print(f"Debug: Shoulder pos {shoulder_pos}, Elbow pos {elbow_pos}")
-                shoulder_elbow_slope = calc_slope(shoulder_pos, elbow_pos)
-                print(f'Shoulder to elbow slope: {shoulder_elbow_slope}')
+            if right_shoulder_pos and right_elbow_pos:
+                print(f"Debug: Right shoulder pos {right_shoulder_pos}, Right elbow pos {right_elbow_pos}")
+                right_shoulder_elbow_slope = calc_slope(right_shoulder_pos, right_elbow_pos)
+                print(f'Right shoulder to elbow slope: {right_shoulder_elbow_slope}')
             else:
-                print("Shoulder or elbow position data is incomplete.")
-            '''
-            if hand_pos and head_pos:
-                hand_pos = hand_pos[0]  # Assuming the first detected hand position
-                print(f"Debug: Hand pos {hand_pos}, Head pos {head_pos}")
-                hand_head_slope = calc_slope(hand_pos, head_pos)
-                print(f'Hand to head slope: {hand_head_slope}')
+                print("Right shoulder or elbow position data is incomplete.")
+
+            if left_shoulder_pos and left_elbow_pos:
+                print(f"Debug: Left shoulder pos {left_shoulder_pos}, Left elbow pos {left_elbow_pos}")
+                left_shoulder_elbow_slope = calc_slope(left_shoulder_pos, left_elbow_pos)
+                print(f'Left shoulder to elbow slope: {left_shoulder_elbow_slope}')
             else:
-                print("Hand or head position data is incomplete.")
-            '''
+                print("Left shoulder or elbow position data is incomplete.")
+
     cap.release()
     cv.destroyAllWindows()
 
